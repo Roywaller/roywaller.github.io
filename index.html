@@ -483,6 +483,16 @@
                 padding: 20px;
             }
         }
+		
+				/* 访客统计响应式 */
+		@media (max-width: 480px) {
+			#busuanzi_container_site_pv,
+			#busuanzi_container_site_uv {
+				display: block !important;
+				margin: 5px 0 !important;
+			}
+		}
+
     </style>
 </head>
 <body>
@@ -515,15 +525,16 @@
         <div class="file-list" id="fileList"></div>
 		    </div>
 
-    <!-- 访客统计 -->
-    <div style="text-align: center; margin-top: 30px; padding: 20px; color: rgba(255, 255, 255, 0.9); font-size: 14px;">
-        <span id="busuanzi_container_site_pv" style="margin: 0 15px;">
-            👀 本站总访问量 <span id="busuanzi_value_site_pv"></span> 次
-        </span>
-        <span id="busuanzi_container_site_uv" style="margin: 0 15px;">
-            👥 访客数 <span id="busuanzi_value_site_uv"></span> 人
-        </span>
-    </div>
+<!-- 访客统计 -->
+<div style="text-align: center; margin-top: 30px; padding: 20px; color: rgba(255, 255, 255, 0.9); font-size: 14px;">
+    <span id="busuanzi_container_site_pv" style="margin: 0 15px; display: inline-block;">
+        👀 本站总访问量 <span id="busuanzi_value_site_pv"></span> 次
+    </span>
+    <span id="busuanzi_container_site_uv" style="margin: 0 15px; display: inline-block;">
+        👥 访客数 <span id="busuanzi_value_site_uv"></span> 人
+    </span>
+</div>
+
 
     <!-- 重命名模态框 -->
     <div id="renameModal" class="modal">
