@@ -3,640 +3,1145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小猴皮皮音频格式转换器</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
+    <title>音频格式转换器</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+		}
+		body {
+			font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 20px;
+		}
+
         .container {
             background: white;
             border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
         }
-        
+
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 10px;
             font-size: 28px;
         }
-        
+
         .subtitle {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
         }
-        
-        .drop-zone {
+
+        .upload-area {
             border: 3px dashed #667eea;
             border-radius: 15px;
             padding: 60px 20px;
             text-align: center;
-            transition: all 0.3s;
             cursor: pointer;
+            transition: all 0.3s;
             background: #f8f9ff;
         }
-        
-        .drop-zone:hover {
+
+        .upload-area:hover {
             border-color: #764ba2;
             background: #f0f2ff;
-        }
-        
-        .drop-zone.dragover {
-            border-color: #764ba2;
-            background: #e8ebff;
-            transform: scale(1.02);
-        }
-        
-        .drop-zone-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-        
-        .drop-zone-text {
-            color: #667eea;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .drop-zone-hint {
-            color: #999;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .supported-formats {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 8px 15px;
-            background: #e8f4f8;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #555;
-        }
-        
-        .action-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #e8f5e9;
         }
-        
-        .btn-secondary:hover:not(:disabled) {
-            background: #5a6268;
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
         }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .file-list {
-            margin-top: 30px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .file-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .file-name {
-            flex: 1;
-            color: #333;
-            font-size: 14px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-right: 10px;
-        }
-        
-        .file-status {
-            font-size: 12px;
-            padding: 5px 10px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }
-        
-        .status-processing {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .download-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 10px;
-            transition: background 0.3s;
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-        }
-        
-        .download-btn:hover {
-            background: #764ba2;
-        }
-        
-        .specs {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 13px;
-            color: #555;
-        }
-        
-        .specs-title {
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #333;
-        }
-        
-        .progress-info {
-            text-align: center;
-            margin-top: 15px;
+
+        .upload-text {
+            font-size: 18px;
             color: #667eea;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
         }
-        
+
+        .upload-hint {
+            font-size: 14px;
+            color: #999;
+        }
+
         input[type="file"] {
             display: none;
         }
 
-        .file-list::-webkit-scrollbar {
-            width: 8px;
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
 
-        .file-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
             border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
         }
 
-        .file-list::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .file-list::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
-        }
-
-        .format-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            margin: 2px;
-            background: #667eea;
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            min-width: auto;
+        }
+
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .progress-info {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .file-list {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .file-item.renamed {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .file-original {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .close {
+            font-size: 32px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .sort-info {
+            background: #f8f9ff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .preview-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .preview-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .preview-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .preview-item {
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .preview-item strong {
+            color: #28a745;
+        }
+
+        .preview-more {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        /* 可编辑文件名样式 */
+        .file-name.editable {
+            cursor: pointer;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 11px;
+            transition: all 0.2s;
+            position: relative;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .file-name.editable:hover {
+            background: #f0f0f0;
+        }
+
+        .file-name.editable:hover::after {
+            content: '✏️';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        .file-name.editing {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            outline: none;
+            cursor: text;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+        }
+
+        .file-name.editing:hover::after {
+            display: none;
+        }
+
+        .file-name.editable::before {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 8px;
+            right: 8px;
+            height: 1px;
+            background: transparent;
+            transition: background 0.2s;
+        }
+
+        .file-name.editable:hover::before {
+            background: #667eea;
+        }
+
+        /* 编辑提示文字 */
+        .edit-hint {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎵 小猴皮皮音频格式转换器</h1>
-        <p class="subtitle">小猴皮皮点读笔兼容wav格式</p>
-        
-        <div class="drop-zone" id="dropZone">
-            <div class="drop-zone-icon">📁</div>
-            <div class="drop-zone-text">拖拽音频文件到这里</div>
-            <div class="drop-zone-hint">
-                或点击选择文件（支持多选）
-                <div class="supported-formats">
-                    <span class="format-badge">MP3</span>
-                    <span class="format-badge">WAV</span>
-                    <span class="format-badge">OGG</span>
-                    <span class="format-badge">M4A</span>
-                    <span class="format-badge">AAC</span>
-                    <span class="format-badge">FLAC</span>
-                    <span class="format-badge">WEBM</span>
+        <h1>🎵 音频格式转换器</h1>
+        <p class="subtitle">将任意音频格式转换为小猴皮皮可以播放的格式</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">点击或拖拽文件到这里</div>
+            <div class="upload-hint">支持 MP3, WAV, M4A, OGG 等常见音频格式</div>
+        </div>
+
+        <input type="file" id="fileInput" multiple accept="audio/*">
+
+        <div class="button-group">
+            <button class="btn-primary" id="convertBtn" disabled>🔄 开始转换</button>
+            <button class="btn-secondary" id="renameBtn" disabled>✏️ 批量重命名</button>
+            <button class="btn-success" id="downloadAllBtn" disabled>📦 打包下载</button>
+            <button class="btn-danger" id="clearBtn" disabled>🗑️ 清空列表</button>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div class="progress-info" id="progressInfo">准备转换...</div>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+    </div>
+
+    <!-- 重命名模态框 -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 批量重命名</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+
+            <div class="form-group">
+                <label for="sortMethod">排序方式：</label>
+                <select id="sortMethod">
+                    <option value="name-asc">文件名 (升序)</option>
+                    <option value="name-desc">文件名 (降序)</option>
+                    <option value="date-asc">修改时间 (最早优先)</option>
+                    <option value="date-desc">修改时间 (最新优先)</option>
+                    <option value="size-asc">文件大小 (从小到大)</option>
+                    <option value="size-desc">文件大小 (从大到小)</option>
+                </select>
+                <div class="sort-info" id="sortInfo">
+                    <strong>当前排序：</strong>文件名 (升序) - A到Z，数字从小到大
                 </div>
             </div>
-        </div>
-        
-        <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm,.opus,.wma" multiple>
-        
-        <div class="action-buttons">
-            <button class="btn btn-primary" id="downloadAllBtn" disabled>
-                📦 打包下载全部 (0)
-            </button>
-            <button class="btn btn-secondary" id="clearBtn" disabled>
-                🗑️ 清空列表
-            </button>
-        </div>
-        
-        <div class="progress-info" id="progressInfo"></div>
-        
-        <div class="file-list" id="fileList"></div>
-        
-        <div class="specs">
-            <div class="specs-title">📋 转换规格：</div>
-            • 单声道 (Mono)<br>
-            • 采样率: 16000 Hz<br>
-            • 编码: PCM 16-bit<br>
-            <br>
-            <div class="specs-title">🎯 支持格式：</div>
-            • <strong>常用格式：</strong>MP3, WAV, OGG, M4A, AAC<br>
-            • <strong>高品质：</strong>FLAC (无损)<br>
-            • <strong>网络格式：</strong>WebM, Opus<br>
-            • <strong>其他：</strong>WMA 等（取决于浏览器支持）
+
+            <div class="form-group">
+                <label for="startNumber">起始编号（5位数字）：</label>
+                <input type="text" id="startNumber" placeholder="例如：00001" maxlength="5" value="00001">
+                <div class="input-hint">文件将被命名为 Rec00001.wav, Rec00002.wav ...</div>
+                <div class="error-message" id="numberError">请输入5位数字</div>
+            </div>
+
+            <div class="preview-section">
+                <h3>🔍 重命名预览（前5个）：</h3>
+                <div class="preview-list" id="previewList"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelRenameBtn">取消</button>
+                <button class="btn-primary" id="confirmRenameBtn">确认重命名</button>
+            </div>
         </div>
     </div>
 
-    <!-- 引入 JSZip 库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    
     <script>
-        const dropZone = document.getElementById('dropZone');
+        const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
+        const convertBtn = document.getElementById('convertBtn');
+        const renameBtn = document.getElementById('renameBtn');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
         const clearBtn = document.getElementById('clearBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
         const progressInfo = document.getElementById('progressInfo');
+        const fileList = document.getElementById('fileList');
 
-        let convertedFiles = []; // 存储转换后的文件
-        let totalFiles = 0;
-        let completedFiles = 0;
+        // 模态框元素
+        const renameModal = document.getElementById('renameModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelRenameBtn = document.getElementById('cancelRenameBtn');
+        const confirmRenameBtn = document.getElementById('confirmRenameBtn');
+        const sortMethod = document.getElementById('sortMethod');
+        const sortInfo = document.getElementById('sortInfo');
+        const startNumberInput = document.getElementById('startNumber');
+        const numberError = document.getElementById('numberError');
+        const previewList = document.getElementById('previewList');
 
-        // 支持的音频格式（Web Audio API 可以解码的格式）
-        const SUPPORTED_FORMATS = {
-            // MIME types
-            'audio/mpeg': true,        // MP3
-            'audio/mp3': true,         // MP3
-            'audio/wav': true,         // WAV
-            'audio/wave': true,        // WAV
-            'audio/x-wav': true,       // WAV
-            'audio/ogg': true,         // OGG
-            'audio/webm': true,        // WebM
-            'audio/flac': true,        // FLAC
-            'audio/x-flac': true,      // FLAC
-            'audio/mp4': true,         // M4A
-            'audio/m4a': true,         // M4A
-            'audio/x-m4a': true,       // M4A
-            'audio/aac': true,         // AAC
-            'audio/aacp': true,        // AAC
-            'audio/opus': true,        // Opus
-            'audio/x-ms-wma': true,    // WMA
-            
-            // 文件扩展名
-            '.mp3': true,
-            '.wav': true,
-            '.ogg': true,
-            '.oga': true,
-            '.webm': true,
-            '.flac': true,
-            '.m4a': true,
-            '.aac': true,
-            '.opus': true,
-            '.wma': true
+        let selectedFiles = [];
+        let convertedFiles = [];
+        let isRenamed = false;
+
+        // 排序方式说明
+        const sortDescriptions = {
+            'name-asc': '文件名 (升序) - A到Z，数字从小到大',
+            'name-desc': '文件名 (降序) - Z到A，数字从大到小',
+            'date-asc': '修改时间 (最早优先) - 最早修改的文件排在前面',
+            'date-desc': '修改时间 (最新优先) - 最新修改的文件排在前面',
+            'size-asc': '文件大小 (从小到大) - 小文件排在前面',
+            'size-desc': '文件大小 (从大到小) - 大文件排在前面'
         };
 
-        // 点击上传
-        dropZone.addEventListener('click', () => fileInput.click());
+        // 上传区域点击
+        uploadArea.addEventListener('click', () => fileInput.click());
 
-        // 拖拽事件
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
-
+        // 文件选择
         fileInput.addEventListener('change', (e) => {
             handleFiles(e.target.files);
         });
 
-        // 打包下载全部
-        downloadAllBtn.addEventListener('click', async () => {
-            if (convertedFiles.length === 0) return;
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
 
-            downloadAllBtn.disabled = true;
-            downloadAllBtn.textContent = '📦 打包中...';
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
 
-            try {
-                const zip = new JSZip();
-                const folder = zip.folder('wav_fixed');
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
 
-                // 添加所有文件到 ZIP
-                for (const file of convertedFiles) {
-                    folder.file(file.name, file.blob);
-                }
-
-                // 生成 ZIP 文件
-                const zipBlob = await zip.generateAsync({
-                    type: 'blob',
-                    compression: 'DEFLATE',
-                    compressionOptions: { level: 6 }
-                }, (metadata) => {
-                    const percent = metadata.percent.toFixed(0);
-                    downloadAllBtn.textContent = `📦 打包中 ${percent}%`;
-                });
-
-                // 下载 ZIP 文件
-                const url = URL.createObjectURL(zipBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'wav_fixed.zip';
-                a.click();
-                URL.revokeObjectURL(url);
-
-                downloadAllBtn.textContent = `📦 打包下载全部 (${convertedFiles.length})`;
-            } catch (error) {
-                console.error('打包失败:', error);
-                alert('打包失败，请重试');
-                downloadAllBtn.textContent = `📦 打包下载全部 (${convertedFiles.length})`;
-            } finally {
-                downloadAllBtn.disabled = false;
+        // 处理文件
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
+            
+            if (selectedFiles.length === 0) {
+                alert('请选择音频文件！');
+                return;
             }
+
+            convertBtn.disabled = false;
+            progressInfo.textContent = `已选择 ${selectedFiles.length} 个音频文件`;
+            progressInfo.style.color = '#667eea';
+            progressContainer.style.display = 'block';
+        }
+
+        // 转换按钮
+        convertBtn.addEventListener('click', async () => {
+            convertBtn.disabled = true;
+            convertedFiles = [];
+            isRenamed = false;
+            
+            progressContainer.style.display = 'block';
+            fileList.style.display = 'none';
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                progressFill.style.width = ((i / selectedFiles.length) * 100) + '%';
+                progressFill.textContent = Math.round((i / selectedFiles.length) * 100) + '%';
+                progressInfo.textContent = `正在转换: ${file.name} (${i + 1}/${selectedFiles.length})`;
+
+                try {
+                    const convertedBlob = await convertAudio(file);
+                    const convertedFile = new File([convertedBlob], file.name.replace(/\.[^/.]+$/, '.wav'), {
+                        type: 'audio/wav',
+                        lastModified: file.lastModified
+                    });
+                    // 保存原始文件大小
+                    convertedFile.originalSize = file.size;
+                    convertedFiles.push(convertedFile);
+                } catch (error) {
+                    console.error('转换失败:', file.name, error);
+                    progressInfo.textContent = `转换失败: ${file.name}`;
+                    progressInfo.style.color = '#dc3545';
+                }
+            }
+
+            progressFill.style.width = '100%';
+            progressFill.textContent = '100%';
+            progressInfo.textContent = `✅ 转换完成！共 ${convertedFiles.length} 个文件`;
+            progressInfo.style.color = '#28a745';
+
+            updateFileListDisplay();
+            updateButtons();
+        });
+
+        // 更新按钮状态
+        function updateButtons() {
+            renameBtn.disabled = convertedFiles.length === 0;
+            downloadAllBtn.disabled = convertedFiles.length === 0;
+            clearBtn.disabled = convertedFiles.length === 0;
+        }
+
+		// 显示文件列表 - 添加手动重命名功能
+		function updateFileListDisplay() {
+			if (convertedFiles.length === 0) {
+				fileList.style.display = 'none';
+				return;
+			}
+
+			fileList.style.display = 'block';
+			fileList.innerHTML = '<div class="edit-hint">💡 提示：点击文件名可直接编辑，按回车保存，按ESC取消</div>';
+
+			convertedFiles.forEach((file, index) => {
+				const fileItem = document.createElement('div');
+				fileItem.className = 'file-item' + (isRenamed ? ' renamed' : '');
+				
+				const fileInfo = document.createElement('div');
+				fileInfo.className = 'file-info';
+				
+				const fileName = document.createElement('div');
+				fileName.className = 'file-name editable';
+				fileName.contentEditable = false;
+				fileName.textContent = file.name;
+				fileName.title = '点击编辑文件名';
+				
+				// 点击进入编辑模式
+				fileName.addEventListener('click', () => {
+					if (fileName.contentEditable === 'false') {
+						fileName.contentEditable = true;
+						fileName.classList.add('editing');
+						fileName.focus();
+						
+						// 选中文件名（不包括扩展名）
+						const range = document.createRange();
+						const selection = window.getSelection();
+						const textNode = fileName.firstChild;
+						const nameWithoutExt = file.name.replace(/\.wav$/, '');
+						range.setStart(textNode, 0);
+						range.setEnd(textNode, nameWithoutExt.length);
+						selection.removeAllRanges();
+						selection.addRange(range);
+					}
+				});
+				
+				// 失去焦点时保存
+				fileName.addEventListener('blur', () => {
+					saveFileName(fileName, index, fileItem);
+				});
+				
+				// 按回车保存，按ESC取消
+				fileName.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						fileName.blur();
+					} else if (e.key === 'Escape') {
+						fileName.textContent = file.name;
+						fileName.contentEditable = false;
+						fileName.classList.remove('editing');
+					}
+				});
+				
+				// 防止输入换行
+				fileName.addEventListener('paste', (e) => {
+					e.preventDefault();
+					const text = e.clipboardData.getData('text/plain').replace(/\n/g, '');
+					document.execCommand('insertText', false, text);
+				});
+				
+				fileInfo.appendChild(fileName);
+				
+				if (file.originalName && file.originalName !== file.name) {
+					const originalName = document.createElement('div');
+					originalName.className = 'file-original';
+					originalName.textContent = `原文件名: ${file.originalName}`;
+					fileInfo.appendChild(originalName);
+				}
+				
+				const fileActions = document.createElement('div');
+				fileActions.className = 'file-actions';
+				
+				const downloadBtn = document.createElement('button');
+				downloadBtn.className = 'btn-success btn-small';
+				downloadBtn.textContent = '下载';
+				downloadBtn.onclick = () => downloadFile(convertedFiles[index]); // 修改：使用索引获取最新的文件对象
+				
+				fileActions.appendChild(downloadBtn);
+				fileItem.appendChild(fileInfo);
+				fileItem.appendChild(fileActions);
+				fileList.appendChild(fileItem);
+			});
+		}
+
+
+		// 保存文件名
+		function saveFileName(element, index, fileItem) {
+			const file = convertedFiles[index];
+			let newName = element.textContent.trim();
+			
+			// 验证文件名
+			if (!newName) {
+				alert('文件名不能为空！');
+				element.textContent = file.name;
+				element.contentEditable = false;
+				element.classList.remove('editing');
+				return;
+			}
+			
+			// 移除非法字符
+			newName = newName.replace(/[<>:"/\\|?*]/g, '');
+			
+			// 确保有.wav扩展名
+			if (!newName.toLowerCase().endsWith('.wav')) {
+				newName += '.wav';
+			}
+			
+			// 检查重名
+			const isDuplicate = convertedFiles.some((f, i) => 
+				i !== index && f.name.toLowerCase() === newName.toLowerCase()
+			);
+			
+			if (isDuplicate) {
+				alert('文件名已存在！');
+				element.textContent = file.name;
+				element.contentEditable = false;
+				element.classList.remove('editing');
+				return;
+			}
+			
+			// 创建新的File对象
+			if (newName !== file.name) {
+				const originalName = file.originalName || file.name;
+				const newFile = new File([file], newName, {
+					type: file.type,
+					lastModified: file.lastModified
+				});
+				newFile.originalName = originalName;
+				newFile.originalSize = file.originalSize || file.size;
+				
+				// 更新数组中的文件对象
+				convertedFiles[index] = newFile;
+				isRenamed = true;
+				
+				// 更新文件项样式
+				fileItem.classList.add('renamed');
+				
+				progressInfo.textContent = `✅ 已重命名: ${originalName} → ${newName}`;
+				progressInfo.style.color = '#28a745';
+			}
+			
+			element.textContent = newName;
+			element.contentEditable = false;
+			element.classList.remove('editing');
+		}
+
+
+        // 单个文件下载
+        function downloadFile(file) {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 打包下载
+        downloadAllBtn.addEventListener('click', async () => {
+            downloadAllBtn.disabled = true;
+            progressInfo.textContent = '正在打包文件...';
+            progressInfo.style.color = '#667eea';
+
+            const zip = new JSZip();
+            
+            convertedFiles.forEach(file => {
+                zip.file(file.name, file);
+            });
+
+            const content = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted_audio_files.zip';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            progressInfo.textContent = '✅ 打包下载完成！';
+            progressInfo.style.color = '#28a745';
+            downloadAllBtn.disabled = false;
         });
 
         // 清空列表
         clearBtn.addEventListener('click', () => {
             if (confirm('确定要清空所有文件吗？')) {
-                fileList.innerHTML = '';
+                selectedFiles = [];
                 convertedFiles = [];
-                totalFiles = 0;
-                completedFiles = 0;
+                isRenamed = false;
+                fileList.innerHTML = '';
+                fileList.style.display = 'none';
+                progressContainer.style.display = 'none';
+                convertBtn.disabled = true;
                 updateButtons();
-                updateProgress();
+                fileInput.value = '';
             }
         });
 
-        function isAudioFile(file) {
-            // 检查 MIME type
-            if (file.type && SUPPORTED_FORMATS[file.type]) {
-                return true;
-            }
-            
-            // 检查文件扩展名
-            const ext = '.' + file.name.split('.').pop().toLowerCase();
-            if (SUPPORTED_FORMATS[ext]) {
-                return true;
-            }
-            
-            // 通用音频类型检查
-            if (file.type && file.type.startsWith('audio/')) {
-                return true;
-            }
-            
-            return false;
+        // 打开重命名模态框
+        renameBtn.addEventListener('click', () => {
+            renameModal.style.display = 'block';
+            updatePreview();
+        });
+
+        // 关闭模态框
+        closeModal.addEventListener('click', closeRenameModal);
+        cancelRenameBtn.addEventListener('click', closeRenameModal);
+
+        function closeRenameModal() {
+            renameModal.style.display = 'none';
         }
 
-        function handleFiles(files) {
-            const audioFiles = Array.from(files).filter(file => isAudioFile(file));
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === renameModal) {
+                closeRenameModal();
+            }
+        });
 
-            if (audioFiles.length === 0) {
-                alert('请选择音频文件\n\n支持格式：MP3, WAV, OGG, M4A, AAC, FLAC, WebM, Opus 等');
+        // 排序方式改变
+        sortMethod.addEventListener('change', () => {
+            sortInfo.innerHTML = `<strong>当前排序：</strong>${sortDescriptions[sortMethod.value]}`;
+            updatePreview();
+        });
+
+        // 起始编号输入验证
+        startNumberInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+            validateInput();
+            updatePreview();
+        });
+
+        // 验证输入
+        function validateInput() {
+            const value = startNumberInput.value;
+            if (value.length !== 5) {
+                numberError.style.display = 'block';
+                return false;
+            }
+            numberError.style.display = 'none';
+            return true;
+        }
+
+        // 文件排序函数
+        function sortFiles(files, method) {
+            const sorted = [...files];
+            
+            switch(method) {
+                case 'name-asc':
+                    sorted.sort((a, b) => {
+                        const nameA = a.originalName || a.name;
+                        const nameB = b.originalName || b.name;
+                        return nameA.localeCompare(nameB, 'zh-CN', { numeric: true });
+                    });
+                    break;
+                    
+                case 'name-desc':
+                    sorted.sort((a, b) => {
+                        const nameA = a.originalName || a.name;
+                        const nameB = b.originalName || b.name;
+                        return nameB.localeCompare(nameA, 'zh-CN', { numeric: true });
+                    });
+                    break;
+                    
+                case 'date-asc':
+                    sorted.sort((a, b) => a.lastModified - b.lastModified);
+                    break;
+                    
+                case 'date-desc':
+                    sorted.sort((a, b) => b.lastModified - a.lastModified);
+                    break;
+                    
+                case 'size-asc':
+                    sorted.sort((a, b) => (a.originalSize || a.size) - (b.originalSize || b.size));
+                    break;
+                    
+                case 'size-desc':
+                    sorted.sort((a, b) => (b.originalSize || b.size) - (a.originalSize || a.size));
+                    break;
+            }
+            
+            return sorted;
+        }
+
+        // 更新预览
+        function updatePreview() {
+            const startNum = parseInt(startNumberInput.value) || 1;
+            const sorted = sortFiles(convertedFiles, sortMethod.value);
+            
+            previewList.innerHTML = '';
+            
+            const previewCount = Math.min(5, sorted.length);
+            for (let i = 0; i < previewCount; i++) {
+                const file = sorted[i];
+                const newName = `Rec${String(startNum + i).padStart(5, '0')}.wav`;
+                const originalName = file.originalName || file.name;
+                
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                item.innerHTML = `${originalName} → <strong>${newName}</strong>`;
+                previewList.appendChild(item);
+            }
+            
+            if (sorted.length > 5) {
+                const more = document.createElement('div');
+                more.className = 'preview-more';
+                more.textContent = `... 还有 ${sorted.length - 5} 个文件`;
+                previewList.appendChild(more);
+            }
+        }
+
+        // 确认重命名
+        confirmRenameBtn.addEventListener('click', () => {
+            if (!validateInput()) {
+                alert('请输入正确的5位起始编号！');
                 return;
             }
 
-            const unsupportedCount = files.length - audioFiles.length;
-            if (unsupportedCount > 0) {
-                console.warn(`跳过 ${unsupportedCount} 个不支持的文件`);
-            }
-
-            totalFiles += audioFiles.length;
-            updateProgress();
-
-            audioFiles.forEach(file => convertFile(file));
-        }
-
-        async function convertFile(file) {
-            const fileItem = createFileItem(file.name);
-            fileList.appendChild(fileItem);
-
-            try {
-                updateStatus(fileItem, 'processing', '转换中...');
-
-                // 读取文件
-                const arrayBuffer = await file.arrayBuffer();
-                
-                // 创建音频上下文
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)({
-                    sampleRate: 16000
-                });
-                
-                // 解码音频
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                
-                // 转换为单声道 16000Hz PCM
-                const wavBlob = audioBufferToWav(audioBuffer);
-                
-                // 创建下载链接
-                const url = URL.createObjectURL(wavBlob);
-                
-                // 获取原文件名（去掉扩展名）并添加 .wav
-                const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                const fileName = originalName + '.wav';
-                
-                // 保存到转换列表
-                convertedFiles.push({
-                    name: fileName,
-                    blob: wavBlob,
-                    url: url
-                });
-
-                completedFiles++;
-                updateProgress();
-                updateStatus(fileItem, 'success', '✅ 完成');
-                addDownloadButton(fileItem, url, fileName);
-                updateButtons();
-
-            } catch (error) {
-                console.error('转换失败:', error);
-                completedFiles++;
-                updateProgress();
-                
-                // 更详细的错误信息
-                let errorMsg = '❌ 失败';
-                if (error.name === 'EncodingError') {
-                    errorMsg = '❌ 格式不支持';
-                } else if (error.message.includes('decode')) {
-                    errorMsg = '❌ 解码失败';
-                }
-                
-                updateStatus(fileItem, 'error', errorMsg);
-            }
-        }
-
-        function createFileItem(fileName) {
-            const div = document.createElement('div');
-            div.className = 'file-item';
-            div.innerHTML = `
-                <span class="file-name" title="${fileName}">${fileName}</span>
-                <span class="file-status"></span>
-            `;
-            return div;
-        }
-
-        function updateStatus(fileItem, type, text) {
-            const status = fileItem.querySelector('.file-status');
-            status.className = `file-status status-${type}`;
-            status.textContent = text;
-        }
-
-        function addDownloadButton(fileItem, url, fileName) {
-            const btn = document.createElement('button');
-            btn.className = 'download-btn';
-            btn.textContent = '下载';
-            btn.onclick = () => {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                a.click();
-            };
-            fileItem.appendChild(btn);
-        }
-
-        function updateButtons() {
-            const hasFiles = convertedFiles.length > 0;
-            downloadAllBtn.disabled = !hasFiles;
-            clearBtn.disabled = !hasFiles;
-            downloadAllBtn.textContent = `📦 打包下载全部 (${convertedFiles.length})`;
-        }
-
-        function updateProgress() {
-            if (totalFiles === 0) {
-                progressInfo.textContent = '';
-            } else if (completedFiles < totalFiles) {
-                progressInfo.textContent = `⏳ 转换进度: ${completedFiles}/${totalFiles}`;
-            } else {
-                progressInfo.textContent = `✅ 全部完成！共 ${totalFiles} 个文件`;
-            }
-        }
-
-        function audioBufferToWav(audioBuffer) {
-            // 转换为单声道
-            const channelData = audioBuffer.numberOfChannels > 1 
-                ? mergeChannels(audioBuffer)
-                : audioBuffer.getChannelData(0);
-
-            const samples = new Int16Array(channelData.length);
+            const startNum = parseInt(startNumberInput.value);
+            const sorted = sortFiles(convertedFiles, sortMethod.value);
             
-            // 转换为 16-bit PCM
-            for (let i = 0; i < channelData.length; i++) {
-                const s = Math.max(-1, Math.min(1, channelData[i]));
-                samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-            }
+            // 执行重命名
+            convertedFiles = sorted.map((file, index) => {
+                const newName = `Rec${String(startNum + index).padStart(5, '0')}.wav`;
+                const originalName = file.originalName || file.name;
+                
+                const newFile = new File([file], newName, {
+                    type: file.type,
+                    lastModified: file.lastModified
+                });
+                newFile.originalName = originalName;
+                newFile.originalSize = file.originalSize || file.size;
+                
+                return newFile;
+            });
 
-            // 创建 WAV 文件
-            const buffer = new ArrayBuffer(44 + samples.length * 2);
-            const view = new DataView(buffer);
+            isRenamed = true;
+            updateFileListDisplay();
+            closeRenameModal();
+            
+            progressInfo.textContent = `✅ 批量重命名完成！共 ${convertedFiles.length} 个文件`;
+            progressInfo.style.color = '#28a745';
+        });
 
-            // WAV 文件头
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + samples.length * 2, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, 1, true);
-            view.setUint32(24, 16000, true);
-            view.setUint32(28, 16000 * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(view, 36, 'data');
-            view.setUint32(40, samples.length * 2, true);
+        // 音频转换核心函数
+        async function convertAudio(file) {
+            return new Promise((resolve, reject) => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const reader = new FileReader();
 
-            const offset = 44;
-            for (let i = 0; i < samples.length; i++) {
-                view.setInt16(offset + i * 2, samples[i], true);
-            }
+                reader.onload = async (e) => {
+                    try {
+                        const arrayBuffer = e.target.result;
+                        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-            return new Blob([buffer], { type: 'audio/wav' });
+                        // 创建离线音频上下文，设置为16kHz单声道
+                        const offlineContext = new OfflineAudioContext(
+                            1,  // 单声道
+                            audioBuffer.duration * 16000,  // 16kHz采样率
+                            16000  // 16kHz
+                        );
+
+                        // 创建音频源
+                        const source = offlineContext.createBufferSource();
+                        source.buffer = audioBuffer;
+
+                        // 如果原音频是立体声，需要转换为单声道
+                        if (audioBuffer.numberOfChannels > 1) {
+                            const merger = offlineContext.createChannelMerger(1);
+                            const splitter = offlineContext.createChannelSplitter(audioBuffer.numberOfChannels);
+                            
+                            source.connect(splitter);
+                            
+                            // 混合所有声道到单声道
+                            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                                const gain = offlineContext.createGain();
+                                gain.gain.value = 1 / audioBuffer.numberOfChannels;
+                                splitter.connect(gain, i);
+                                gain.connect(merger, 0, 0);
+                            }
+                            
+                            merger.connect(offlineContext.destination);
+                        } else {
+                            source.connect(offlineContext.destination);
+                        }
+
+                        source.start(0);
+
+                        // 渲染音频
+                        const renderedBuffer = await offlineContext.startRendering();
+
+                        // 转换为WAV格式
+                        const wavBlob = audioBufferToWav(renderedBuffer);
+                        resolve(wavBlob);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
         }
 
-        function mergeChannels(audioBuffer) {
+        // 将AudioBuffer转换为WAV格式
+        function audioBufferToWav(buffer) {
+            const length = buffer.length * buffer.numberOfChannels * 2;
+            const arrayBuffer = new ArrayBuffer(44 + length);
+            const view = new DataView(arrayBuffer);
             const channels = [];
-            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-                channels.push(audioBuffer.getChannelData(i));
-            }
-            
-            const merged = new Float32Array(channels[0].length);
-            for (let i = 0; i < merged.length; i++) {
-                let sum = 0;
-                for (let j = 0; j < channels.length; j++) {
-                    sum += channels[j][i];
-                }
-                merged[i] = sum / channels.length;
-            }
-            return merged;
-        }
+            let offset = 0;
+            let pos = 0;
 
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
+            // 写入WAV文件头
+            setUint32(0x46464952); // "RIFF"
+            setUint32(36 + length); // 文件长度
+            setUint32(0x45564157); // "WAVE"
+
+            // fmt子块
+            setUint32(0x20746d66); // "fmt "
+            setUint32(16); // 子块大小
+            setUint16(1); // 音频格式 (PCM)
+            setUint16(buffer.numberOfChannels); // 声道数
+            setUint32(buffer.sampleRate); // 采样率
+            setUint32(buffer.sampleRate * buffer.numberOfChannels * 2); // 字节率
+            setUint16(buffer.numberOfChannels * 2); // 块对齐
+            setUint16(16); // 位深度
+
+            // data子块
+            setUint32(0x61746164); // "data"
+            setUint32(length); // 数据长度
+
+            // 写入音频数据
+            for (let i = 0; i < buffer.numberOfChannels; i++) {
+                channels.push(buffer.getChannelData(i));
+            }
+
+            while (pos < buffer.length) {
+                for (let i = 0; i < buffer.numberOfChannels; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][pos]));
+                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(offset, sample, true);
+                    offset += 2;
+                }
+                pos++;
+            }
+
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+
+            function setUint16(data) {
+                view.setUint16(pos, data, true);
+                pos += 2;
+            }
+
+            function setUint32(data) {
+                view.setUint32(pos, data, true);
+                pos += 4;
             }
         }
     </script>
