@@ -16,6 +16,7 @@
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 			min-height: 100vh;
 			display: flex;
+			flex-direction: column;
 			justify-content: center;
 			align-items: center;
 			padding: 20px;
@@ -512,9 +513,21 @@
         </div>
 
         <div class="file-list" id="fileList"></div>
-		<span id="busuanzi_container_site_uv">
-    本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
-</span>
+		    </div>
+
+    <!-- 访客统计 -->
+    <div style="text-align: center; margin-top: 30px; padding: 20px; color: rgba(255, 255, 255, 0.9); font-size: 14px;">
+        <span id="busuanzi_container_site_pv" style="margin: 0 15px;">
+            👀 本站总访问量 <span id="busuanzi_value_site_pv"></span> 次
+        </span>
+        <span id="busuanzi_container_site_uv" style="margin: 0 15px;">
+            👥 访客数 <span id="busuanzi_value_site_uv"></span> 人
+        </span>
+    </div>
+
+    <!-- 重命名模态框 -->
+    <div id="renameModal" class="modal">
+
     </div>
 
     <!-- 重命名模态框 -->
@@ -559,8 +572,8 @@
         </div>
     </div>
 
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <script>
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -1148,10 +1161,6 @@
                 pos += 4;
             }
         }
-	</script>
+    </script>
 </body>
 </html>
-
-
-
-
