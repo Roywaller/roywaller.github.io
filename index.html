@@ -628,7 +628,7 @@
             }
 
             convertBtn.disabled = false;
-            progressInfo.textContent = '已选择 ${selectedFiles.length} 个音频文件';
+            progressInfo.textContent = `已选择 ${selectedFiles.length} 个音频文件`;
             progressInfo.style.color = '#667eea';
             progressContainer.style.display = 'block';
         }
@@ -646,7 +646,7 @@
                 const file = selectedFiles[i];
                 progressFill.style.width = ((i / selectedFiles.length) * 100) + '%';
                 progressFill.textContent = Math.round((i / selectedFiles.length) * 100) + '%';
-                progressInfo.textContent = '正在转换: ${file.name} (${i + 1}/${selectedFiles.length})';
+                progressInfo.textContent = `正在转换: ${file.name} (${i + 1}/${selectedFiles.length})`;
 
                 try {
                     const convertedBlob = await convertAudio(file);
@@ -659,14 +659,14 @@
                     convertedFiles.push(convertedFile);
                 } catch (error) {
                     console.error('转换失败:', file.name, error);
-                    progressInfo.textContent = '转换失败: ${file.name}';
+                    progressInfo.textContent = `转换失败: ${file.name}`;
                     progressInfo.style.color = '#dc3545';
                 }
             }
 
             progressFill.style.width = '100%';
             progressFill.textContent = '100%';
-            progressInfo.textContent = '✅ 转换完成！共 ${convertedFiles.length} 个文件';
+            progressInfo.textContent = `✅ 转换完成！共 ${convertedFiles.length} 个文件`;
             progressInfo.style.color = '#28a745';
 
             updateFileListDisplay();
@@ -751,7 +751,7 @@
 				if (file.originalName && file.originalName !== file.name) {
 					const originalName = document.createElement('div');
 					originalName.className = 'file-original';
-					originalName.textContent = '原文件名: ${file.originalName}';
+					originalName.textContent = `原文件名: ${file.originalName}`;
 					fileInfo.appendChild(originalName);
 				}
 				
@@ -823,7 +823,7 @@
 				// 更新文件项样式
 				fileItem.classList.add('renamed');
 				
-				progressInfo.textContent = '✅ 已重命名: ${originalName} → ${newName}';
+				progressInfo.textContent = `✅ 已重命名: ${originalName} → ${newName}`;
 				progressInfo.style.color = '#28a745';
 			}
 			
@@ -906,7 +906,7 @@
 
         // 排序方式改变
         sortMethod.addEventListener('change', () => {
-            sortInfo.innerHTML = '<strong>当前排序：</strong>${sortDescriptions[sortMethod.value]}';
+            sortInfo.innerHTML = `<strong>当前排序：</strong>${sortDescriptions[sortMethod.value]}`;
             updatePreview();
         });
 
@@ -979,19 +979,19 @@
             const previewCount = Math.min(5, sorted.length);
             for (let i = 0; i < previewCount; i++) {
                 const file = sorted[i];
-                const newName = 'Rec${String(startNum + i).padStart(5, '0')}.wav';
+                const newName = `Rec${String(startNum + i).padStart(5, '0')}.wav`;
                 const originalName = file.originalName || file.name;
                 
                 const item = document.createElement('div');
                 item.className = 'preview-item';
-                item.innerHTML = '${originalName} → <strong>${newName}</strong>';
+                item.innerHTML = `${originalName} → <strong>${newName}</strong>`;
                 previewList.appendChild(item);
             }
             
             if (sorted.length > 5) {
                 const more = document.createElement('div');
                 more.className = 'preview-more';
-                more.textContent = '... 还有 ${sorted.length - 5} 个文件';
+                more.textContent = `... 还有 ${sorted.length - 5} 个文件`;
                 previewList.appendChild(more);
             }
         }
@@ -1008,7 +1008,7 @@
             
             // 执行重命名
             convertedFiles = sorted.map((file, index) => {
-                const newName = 'Rec${String(startNum + index).padStart(5, '0')}.wav';
+                const newName = `Rec${String(startNum + index).padStart(5, '0')}.wav`;
                 const originalName = file.originalName || file.name;
                 
                 const newFile = new File([file], newName, {
@@ -1025,7 +1025,7 @@
             updateFileListDisplay();
             closeRenameModal();
             
-            progressInfo.textContent = '✅ 批量重命名完成！共 ${convertedFiles.length} 个文件';
+            progressInfo.textContent = `✅ 批量重命名完成！共 ${convertedFiles.length} 个文件`;
             progressInfo.style.color = '#28a745';
         });
 
