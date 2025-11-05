@@ -3,211 +3,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>音频转换为点读笔格式</title>
+    <title>小猴皮皮音频格式转换器</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
+            padding: 20px;
         }
+        
         .container {
-            width: 90%;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             max-width: 600px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            text-align: center;
+            width: 100%;
         }
+        
         h1 {
-            color: #1a73e8;
-            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
         }
-        #drop-zone {
-            border: 3px dashed #ccc;
-            border-radius: 8px;
-            padding: 40px 20px;
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s;
             cursor: pointer;
-            transition: border-color 0.3s, background-color 0.3s;
+            background: #f8f9ff;
         }
-        #drop-zone.dragover {
-            border-color: #1a73e8;
-            background-color: #e8f0fe;
+        
+        .drop-zone:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
         }
-        #drop-zone p {
-            margin: 0;
-            font-size: 1.1rem;
+        
+        .drop-zone.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+        
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .drop-zone-text {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .drop-zone-hint {
+            color: #999;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .supported-formats {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 15px;
+            background: #e8f4f8;
+            border-radius: 8px;
+            font-size: 12px;
             color: #555;
         }
-        #status {
-            margin-top: 1.5rem;
+        
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .file-list {
+            margin-top: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-name {
+            flex: 1;
+            color: #333;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+        
+        .file-status {
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .download-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+            transition: background 0.3s;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        .download-btn:hover {
+            background: #764ba2;
+        }
+        
+        .specs {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .specs-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .progress-info {
+            text-align: center;
+            margin-top: 15px;
+            color: #667eea;
             font-weight: bold;
         }
-        #output {
-            margin-top: 1rem;
-            text-align: left;
+        
+        input[type="file"] {
+            display: none;
         }
-        #output a {
-            display: block;
-            background-color: #28a745;
+
+        .file-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .format-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            background: #667eea;
             color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 10px;
-            transition: background-color 0.3s;
-        }
-        #output a:hover {
-            background-color: #218838;
+            border-radius: 4px;
+            font-size: 11px;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>音频转换为小猴皮皮点读笔格式</h1>
-        <div id="drop-zone">
-            <p>将 MP3 文件拖拽到这里</p>
-            <p>或 <strong>点击选择文件</strong></p>
-            <input type="file" id="file-input" accept=".mp3" style="display: none;" multiple>
+        <h1>🎵 小猴皮皮音频格式转换器</h1>
+        <p class="subtitle">小猴皮皮点读笔兼容wav格式</p>
+        
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-icon">📁</div>
+            <div class="drop-zone-text">拖拽音频文件到这里</div>
+            <div class="drop-zone-hint">
+                或点击选择文件（支持多选）
+                <div class="supported-formats">
+                    <span class="format-badge">MP3</span>
+                    <span class="format-badge">WAV</span>
+                    <span class="format-badge">OGG</span>
+                    <span class="format-badge">M4A</span>
+                    <span class="format-badge">AAC</span>
+                    <span class="format-badge">FLAC</span>
+                    <span class="format-badge">WEBM</span>
+                </div>
+            </div>
         </div>
-        <div id="status">等待文件...</div>
-        <div id="output"></div>
+        
+        <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm,.opus,.wma" multiple>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="downloadAllBtn" disabled>
+                📦 打包下载全部 (0)
+            </button>
+            <button class="btn btn-secondary" id="clearBtn" disabled>
+                🗑️ 清空列表
+            </button>
+        </div>
+        
+        <div class="progress-info" id="progressInfo"></div>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <div class="specs">
+            <div class="specs-title">📋 转换规格：</div>
+            • 单声道 (Mono)<br>
+            • 采样率: 16000 Hz<br>
+            • 编码: PCM 16-bit<br>
+            <br>
+            <div class="specs-title">🎯 支持格式：</div>
+            • <strong>常用格式：</strong>MP3, WAV, OGG, M4A, AAC<br>
+            • <strong>高品质：</strong>FLAC (无损)<br>
+            • <strong>网络格式：</strong>WebM, Opus<br>
+            • <strong>其他：</strong>WMA 等（取决于浏览器支持）
+        </div>
     </div>
 
-    <!-- 引入 FFmpeg.wasm 库 -->
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <!-- 引入 JSZip 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
     <script>
-        const { FFmpeg } = FFmpeg;
-        let ffmpeg;
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progressInfo = document.getElementById('progressInfo');
 
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const statusEl = document.getElementById('status');
-        const outputEl = document.getElementById('output');
+        let convertedFiles = []; // 存储转换后的文件
+        let totalFiles = 0;
+        let completedFiles = 0;
 
-        // 初始化 FFmpeg 实例
-        const loadFFmpeg = async () => {
-            statusEl.textContent = '正在加载转换引擎 (FFmpeg)...';
-            ffmpeg = new FFmpeg();
-            ffmpeg.on('log', ({ message }) => {
-                 // 可以在这里显示 FFmpeg 的日志，用于调试
-                 console.log(message);
-            });
-            await ffmpeg.load({
-                coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
-            });
-            statusEl.textContent = '引擎加载完毕，请拖入文件。';
-        };
-
-        const convertFile = async (file) => {
-            if (!ffmpeg || !ffmpeg.loaded) {
-                await loadFFmpeg();
-            }
-
-            const inputFileName = file.name;
-            const outputFileName = `${inputFileName.split('.').slice(0, -1).join('.')}.wav`;
+        // 支持的音频格式（Web Audio API 可以解码的格式）
+        const SUPPORTED_FORMATS = {
+            // MIME types
+            'audio/mpeg': true,        // MP3
+            'audio/mp3': true,         // MP3
+            'audio/wav': true,         // WAV
+            'audio/wave': true,        // WAV
+            'audio/x-wav': true,       // WAV
+            'audio/ogg': true,         // OGG
+            'audio/webm': true,        // WebM
+            'audio/flac': true,        // FLAC
+            'audio/x-flac': true,      // FLAC
+            'audio/mp4': true,         // M4A
+            'audio/m4a': true,         // M4A
+            'audio/x-m4a': true,       // M4A
+            'audio/aac': true,         // AAC
+            'audio/aacp': true,        // AAC
+            'audio/opus': true,        // Opus
+            'audio/x-ms-wma': true,    // WMA
             
-            statusEl.textContent = `正在转换: ${inputFileName} ...`;
-            outputEl.innerHTML = '';
-
-            try {
-                // 1. 将文件写入虚拟文件系统
-                const data = new Uint8Array(await file.arrayBuffer());
-                await ffmpeg.writeFile(inputFileName, data);
-
-                // 2. 运行 FFmpeg 命令，与您的脚本参数保持一致
-                await ffmpeg.exec([
-                    '-i', inputFileName,
-                    '-ac', '1',
-                    '-ar', '16000',
-                    '-c:a', 'pcm_s16le',
-                    '-fflags', '+bitexact',
-                    '-map_metadata', '-1',
-                    '-write_id3v2', '0',
-                    outputFileName
-                ]);
-
-                // 3. 从虚拟文件系统中读取转换后的文件
-                const outputData = await ffmpeg.readFile(outputFileName);
-
-                // 4. 创建下载链接
-                const blob = new Blob([outputData.buffer], { type: 'audio/wav' });
-                const url = URL.createObjectURL(blob);
-                
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = outputFileName;
-                link.textContent = `✅ 下载转换后的文件: ${outputFileName}`;
-                
-                outputEl.appendChild(link);
-                statusEl.textContent = `转换完成: ${inputFileName}`;
-
-                // 清理虚拟文件系统中的文件
-                await ffmpeg.deleteFile(inputFileName);
-                await ffmpeg.deleteFile(outputFileName);
-
-            } catch (error) {
-                statusEl.textContent = `转换失败: ${inputFileName}. 请检查控制台日志。`;
-                console.error(error);
-            }
+            // 文件扩展名
+            '.mp3': true,
+            '.wav': true,
+            '.ogg': true,
+            '.oga': true,
+            '.webm': true,
+            '.flac': true,
+            '.m4a': true,
+            '.aac': true,
+            '.opus': true,
+            '.wma': true
         };
 
-        // --- 事件监听 ---
+        // 点击上传
+        dropZone.addEventListener('click', () => fileInput.click());
 
-        // 阻止浏览器默认的拖拽行为
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
+        // 拖拽事件
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
         });
 
-        // 添加拖拽高亮效果
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
         });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
-        
-        // 处理文件拖放
         dropZone.addEventListener('drop', (e) => {
-            const files = e.dataTransfer.files;
-            if (files.length) {
-                // 支持同时转换多个文件
-                for (const file of files) {
-                     if (file.type === 'audio/mpeg') {
-                        convertFile(file);
-                     }
-                }
-            }
-        }, false);
-
-        // 处理点击选择文件
-        dropZone.addEventListener('click', () => {
-            fileInput.click();
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
         });
 
         fileInput.addEventListener('change', (e) => {
-            const files = e.target.files;
-            if (files.length) {
-                for (const file of files) {
-                    convertFile(file);
+            handleFiles(e.target.files);
+        });
+
+        // 打包下载全部
+        downloadAllBtn.addEventListener('click', async () => {
+            if (convertedFiles.length === 0) return;
+
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.textContent = '📦 打包中...';
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder('wav_fixed');
+
+                // 添加所有文件到 ZIP
+                for (const file of convertedFiles) {
+                    folder.file(file.name, file.blob);
                 }
+
+                // 生成 ZIP 文件
+                const zipBlob = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                }, (metadata) => {
+                    const percent = metadata.percent.toFixed(0);
+                    downloadAllBtn.textContent = `📦 打包中 ${percent}%`;
+                });
+
+                // 下载 ZIP 文件
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'wav_fixed.zip';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                downloadAllBtn.textContent = `📦 打包下载全部 (${convertedFiles.length})`;
+            } catch (error) {
+                console.error('打包失败:', error);
+                alert('打包失败，请重试');
+                downloadAllBtn.textContent = `📦 打包下载全部 (${convertedFiles.length})`;
+            } finally {
+                downloadAllBtn.disabled = false;
             }
         });
 
-        // 页面加载后立即初始化 FFmpeg
-        loadFFmpeg();
+        // 清空列表
+        clearBtn.addEventListener('click', () => {
+            if (confirm('确定要清空所有文件吗？')) {
+                fileList.innerHTML = '';
+                convertedFiles = [];
+                totalFiles = 0;
+                completedFiles = 0;
+                updateButtons();
+                updateProgress();
+            }
+        });
 
+        function isAudioFile(file) {
+            // 检查 MIME type
+            if (file.type && SUPPORTED_FORMATS[file.type]) {
+                return true;
+            }
+            
+            // 检查文件扩展名
+            const ext = '.' + file.name.split('.').pop().toLowerCase();
+            if (SUPPORTED_FORMATS[ext]) {
+                return true;
+            }
+            
+            // 通用音频类型检查
+            if (file.type && file.type.startsWith('audio/')) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function handleFiles(files) {
+            const audioFiles = Array.from(files).filter(file => isAudioFile(file));
+
+            if (audioFiles.length === 0) {
+                alert('请选择音频文件\n\n支持格式：MP3, WAV, OGG, M4A, AAC, FLAC, WebM, Opus 等');
+                return;
+            }
+
+            const unsupportedCount = files.length - audioFiles.length;
+            if (unsupportedCount > 0) {
+                console.warn(`跳过 ${unsupportedCount} 个不支持的文件`);
+            }
+
+            totalFiles += audioFiles.length;
+            updateProgress();
+
+            audioFiles.forEach(file => convertFile(file));
+        }
+
+        async function convertFile(file) {
+            const fileItem = createFileItem(file.name);
+            fileList.appendChild(fileItem);
+
+            try {
+                updateStatus(fileItem, 'processing', '转换中...');
+
+                // 读取文件
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // 创建音频上下文
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                    sampleRate: 16000
+                });
+                
+                // 解码音频
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // 转换为单声道 16000Hz PCM
+                const wavBlob = audioBufferToWav(audioBuffer);
+                
+                // 创建下载链接
+                const url = URL.createObjectURL(wavBlob);
+                
+                // 获取原文件名（去掉扩展名）并添加 .wav
+                const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                const fileName = originalName + '.wav';
+                
+                // 保存到转换列表
+                convertedFiles.push({
+                    name: fileName,
+                    blob: wavBlob,
+                    url: url
+                });
+
+                completedFiles++;
+                updateProgress();
+                updateStatus(fileItem, 'success', '✅ 完成');
+                addDownloadButton(fileItem, url, fileName);
+                updateButtons();
+
+            } catch (error) {
+                console.error('转换失败:', error);
+                completedFiles++;
+                updateProgress();
+                
+                // 更详细的错误信息
+                let errorMsg = '❌ 失败';
+                if (error.name === 'EncodingError') {
+                    errorMsg = '❌ 格式不支持';
+                } else if (error.message.includes('decode')) {
+                    errorMsg = '❌ 解码失败';
+                }
+                
+                updateStatus(fileItem, 'error', errorMsg);
+            }
+        }
+
+        function createFileItem(fileName) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.innerHTML = `
+                <span class="file-name" title="${fileName}">${fileName}</span>
+                <span class="file-status"></span>
+            `;
+            return div;
+        }
+
+        function updateStatus(fileItem, type, text) {
+            const status = fileItem.querySelector('.file-status');
+            status.className = `file-status status-${type}`;
+            status.textContent = text;
+        }
+
+        function addDownloadButton(fileItem, url, fileName) {
+            const btn = document.createElement('button');
+            btn.className = 'download-btn';
+            btn.textContent = '下载';
+            btn.onclick = () => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+            };
+            fileItem.appendChild(btn);
+        }
+
+        function updateButtons() {
+            const hasFiles = convertedFiles.length > 0;
+            downloadAllBtn.disabled = !hasFiles;
+            clearBtn.disabled = !hasFiles;
+            downloadAllBtn.textContent = `📦 打包下载全部 (${convertedFiles.length})`;
+        }
+
+        function updateProgress() {
+            if (totalFiles === 0) {
+                progressInfo.textContent = '';
+            } else if (completedFiles < totalFiles) {
+                progressInfo.textContent = `⏳ 转换进度: ${completedFiles}/${totalFiles}`;
+            } else {
+                progressInfo.textContent = `✅ 全部完成！共 ${totalFiles} 个文件`;
+            }
+        }
+
+        function audioBufferToWav(audioBuffer) {
+            // 转换为单声道
+            const channelData = audioBuffer.numberOfChannels > 1 
+                ? mergeChannels(audioBuffer)
+                : audioBuffer.getChannelData(0);
+
+            const samples = new Int16Array(channelData.length);
+            
+            // 转换为 16-bit PCM
+            for (let i = 0; i < channelData.length; i++) {
+                const s = Math.max(-1, Math.min(1, channelData[i]));
+                samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+
+            // 创建 WAV 文件
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+
+            // WAV 文件头
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, 16000, true);
+            view.setUint32(28, 16000 * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+
+            const offset = 44;
+            for (let i = 0; i < samples.length; i++) {
+                view.setInt16(offset + i * 2, samples[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function mergeChannels(audioBuffer) {
+            const channels = [];
+            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+            
+            const merged = new Float32Array(channels[0].length);
+            for (let i = 0; i < merged.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < channels.length; j++) {
+                    sum += channels[j][i];
+                }
+                merged[i] = sum / channels.length;
+            }
+            return merged;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
     </script>
 </body>
-
 </html>
