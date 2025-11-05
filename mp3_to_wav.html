@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频转换为点读笔格式</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+        }
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 1.5rem;
+        }
+        #drop-zone {
+            border: 3px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        #drop-zone.dragover {
+            border-color: #1a73e8;
+            background-color: #e8f0fe;
+        }
+        #drop-zone p {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        #status {
+            margin-top: 1.5rem;
+            font-weight: bold;
+        }
+        #output {
+            margin-top: 1rem;
+            text-align: left;
+        }
+        #output a {
+            display: block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        #output a:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>音频转换为小猴皮皮点读笔格式</h1>
+        <div id="drop-zone">
+            <p>将 MP3 文件拖拽到这里</p>
+            <p>或 <strong>点击选择文件</strong></p>
+            <input type="file" id="file-input" accept=".mp3" style="display: none;" multiple>
+        </div>
+        <div id="status">等待文件...</div>
+        <div id="output"></div>
+    </div>
+
+    <!-- 引入 FFmpeg.wasm 库 -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script>
+        const { FFmpeg } = FFmpeg;
+        let ffmpeg;
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const statusEl = document.getElementById('status');
+        const outputEl = document.getElementById('output');
+
+        // 初始化 FFmpeg 实例
+        const loadFFmpeg = async () => {
+            statusEl.textContent = '正在加载转换引擎 (FFmpeg)...';
+            ffmpeg = new FFmpeg();
+            ffmpeg.on('log', ({ message }) => {
+                 // 可以在这里显示 FFmpeg 的日志，用于调试
+                 console.log(message);
+            });
+            await ffmpeg.load({
+                coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
+            });
+            statusEl.textContent = '引擎加载完毕，请拖入文件。';
+        };
+
+        const convertFile = async (file) => {
+            if (!ffmpeg || !ffmpeg.loaded) {
+                await loadFFmpeg();
+            }
+
+            const inputFileName = file.name;
+            const outputFileName = `${inputFileName.split('.').slice(0, -1).join('.')}.wav`;
+            
+            statusEl.textContent = `正在转换: ${inputFileName} ...`;
+            outputEl.innerHTML = '';
+
+            try {
+                // 1. 将文件写入虚拟文件系统
+                const data = new Uint8Array(await file.arrayBuffer());
+                await ffmpeg.writeFile(inputFileName, data);
+
+                // 2. 运行 FFmpeg 命令，与您的脚本参数保持一致
+                await ffmpeg.exec([
+                    '-i', inputFileName,
+                    '-ac', '1',
+                    '-ar', '16000',
+                    '-c:a', 'pcm_s16le',
+                    '-fflags', '+bitexact',
+                    '-map_metadata', '-1',
+                    '-write_id3v2', '0',
+                    outputFileName
+                ]);
+
+                // 3. 从虚拟文件系统中读取转换后的文件
+                const outputData = await ffmpeg.readFile(outputFileName);
+
+                // 4. 创建下载链接
+                const blob = new Blob([outputData.buffer], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = outputFileName;
+                link.textContent = `✅ 下载转换后的文件: ${outputFileName}`;
+                
+                outputEl.appendChild(link);
+                statusEl.textContent = `转换完成: ${inputFileName}`;
+
+                // 清理虚拟文件系统中的文件
+                await ffmpeg.deleteFile(inputFileName);
+                await ffmpeg.deleteFile(outputFileName);
+
+            } catch (error) {
+                statusEl.textContent = `转换失败: ${inputFileName}. 请检查控制台日志。`;
+                console.error(error);
+            }
+        };
+
+        // --- 事件监听 ---
+
+        // 阻止浏览器默认的拖拽行为
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        // 添加拖拽高亮效果
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+        
+        // 处理文件拖放
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                // 支持同时转换多个文件
+                for (const file of files) {
+                     if (file.type === 'audio/mpeg') {
+                        convertFile(file);
+                     }
+                }
+            }
+        }, false);
+
+        // 处理点击选择文件
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length) {
+                for (const file of files) {
+                    convertFile(file);
+                }
+            }
+        });
+
+        // 页面加载后立即初始化 FFmpeg
+        loadFFmpeg();
+
+    </script>
+</body>
+</html>
