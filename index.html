@@ -1058,121 +1058,133 @@
             progressInfo.style.color = '#28a745';
         });
 
-        // 音频转换核心函数
-        async function convertAudio(file) {
-            return new Promise((resolve, reject) => {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const reader = new FileReader();
+// 音频转换核心函数（完全对齐 FFmpeg 参数）
+async function convertAudio(file) {
+    return new Promise((resolve, reject) => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const reader = new FileReader();
 
-                reader.onload = async (e) => {
-                    try {
-                        const arrayBuffer = e.target.result;
-                        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        reader.onload = async (e) => {
+            try {
+                const arrayBuffer = e.target.result;
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-                        // 创建离线音频上下文，设置为16kHz单声道
-                        const offlineContext = new OfflineAudioContext(
-                            1,  // 单声道
-                            audioBuffer.duration * 16000,  // 16kHz采样率
-                            16000  // 16kHz
-                        );
+                // 计算目标长度（16kHz）
+                const targetSampleRate = 16000;
+                const targetLength = Math.ceil(audioBuffer.duration * targetSampleRate);
 
-                        // 创建音频源
-                        const source = offlineContext.createBufferSource();
-                        source.buffer = audioBuffer;
+                // 创建离线音频上下文：单声道 + 16kHz
+                const offlineContext = new OfflineAudioContext(
+                    1,                    // 单声道 (-ac 1)
+                    targetLength,         // 样本数
+                    targetSampleRate      // 16kHz (-ar 16000)
+                );
 
-                        // 如果原音频是立体声，需要转换为单声道
-                        if (audioBuffer.numberOfChannels > 1) {
-                            const merger = offlineContext.createChannelMerger(1);
-                            const splitter = offlineContext.createChannelSplitter(audioBuffer.numberOfChannels);
-                            
-                            source.connect(splitter);
-                            
-                            // 混合所有声道到单声道
-                            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-                                const gain = offlineContext.createGain();
-                                gain.gain.value = 1 / audioBuffer.numberOfChannels;
-                                splitter.connect(gain, i);
-                                gain.connect(merger, 0, 0);
-                            }
-                            
-                            merger.connect(offlineContext.destination);
-                        } else {
-                            source.connect(offlineContext.destination);
-                        }
+                // 创建音频源
+                const source = offlineContext.createBufferSource();
+                source.buffer = audioBuffer;
+                
+                // 直接连接到输出（OfflineAudioContext 会自动处理声道混合和重采样）
+                source.connect(offlineContext.destination);
+                source.start(0);
 
-                        source.start(0);
+                // 渲染音频
+                const renderedBuffer = await offlineContext.startRendering();
 
-                        // 渲染音频
-                        const renderedBuffer = await offlineContext.startRendering();
+                // 转换为 WAV 格式（pcm_s16le）
+                const wavBlob = audioBufferToWav(renderedBuffer);
+                resolve(wavBlob);
+            } catch (error) {
+                console.error('音频解码失败:', error);
+                reject(error);
+            }
+        };
 
-                        // 转换为WAV格式
-                        const wavBlob = audioBufferToWav(renderedBuffer);
-                        resolve(wavBlob);
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
+        reader.onerror = () => reject(new Error('文件读取失败'));
+        reader.readAsArrayBuffer(file);
+    });
+}
 
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
+// 将 AudioBuffer 转换为 WAV 格式（严格按照 PCM_S16LE 标准）
+function audioBufferToWav(buffer) {
+    const numChannels = buffer.numberOfChannels;  // 应该是 1
+    const sampleRate = buffer.sampleRate;         // 应该是 16000
+    const format = 1;                             // PCM
+    const bitDepth = 16;                          // 16位 (pcm_s16le)
+    
+    const bytesPerSample = bitDepth / 8;          // 2 字节
+    const blockAlign = numChannels * bytesPerSample;
+    const numSamples = buffer.length;
+    const dataSize = numSamples * blockAlign;
+    const bufferSize = 44 + dataSize;
+    
+    // 创建 ArrayBuffer
+    const arrayBuffer = new ArrayBuffer(bufferSize);
+    const view = new DataView(arrayBuffer);
+    
+    let pos = 0;
+    
+    // 辅助函数：写入字符串
+    function writeString(str) {
+        for (let i = 0; i < str.length; i++) {
+            view.setUint8(pos++, str.charCodeAt(i));
         }
+    }
+    
+    // 辅助函数：写入 32 位整数（小端）
+    function writeUint32(value) {
+        view.setUint32(pos, value, true);  // true = 小端
+        pos += 4;
+    }
+    
+    // 辅助函数：写入 16 位整数（小端）
+    function writeUint16(value) {
+        view.setUint16(pos, value, true);  // true = 小端
+        pos += 2;
+    }
+    
+    // ========== WAV 文件头（44 字节）==========
+    
+    // RIFF 块描述符
+    writeString('RIFF');                    // ChunkID (4 bytes)
+    writeUint32(bufferSize - 8);            // ChunkSize (4 bytes)
+    writeString('WAVE');                    // Format (4 bytes)
+    
+    // fmt 子块
+    writeString('fmt ');                    // Subchunk1ID (4 bytes)
+    writeUint32(16);                        // Subchunk1Size (4 bytes) - PCM 固定为 16
+    writeUint16(format);                    // AudioFormat (2 bytes) - 1 = PCM
+    writeUint16(numChannels);               // NumChannels (2 bytes) - 1 = 单声道
+    writeUint32(sampleRate);                // SampleRate (4 bytes) - 16000
+    writeUint32(sampleRate * blockAlign);   // ByteRate (4 bytes)
+    writeUint16(blockAlign);                // BlockAlign (2 bytes)
+    writeUint16(bitDepth);                  // BitsPerSample (2 bytes) - 16
+    
+    // data 子块
+    writeString('data');                    // Subchunk2ID (4 bytes)
+    writeUint32(dataSize);                  // Subchunk2Size (4 bytes)
+    
+    // ========== 写入音频数据（PCM_S16LE）==========
+    
+    // 获取音频数据（单声道）
+    const channelData = buffer.getChannelData(0);
+    
+    for (let i = 0; i < numSamples; i++) {
+        // 将浮点数 [-1.0, 1.0] 转换为 16 位整数 [-32768, 32767]
+        let sample = channelData[i];
+        
+        // 限制范围
+        sample = Math.max(-1, Math.min(1, sample));
+        
+        // 转换为 16 位整数（小端）
+        const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(pos, int16, true);  // true = 小端 (LE)
+        pos += 2;
+    }
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
 
-        // 将AudioBuffer转换为WAV格式
-        function audioBufferToWav(buffer) {
-            const length = buffer.length * buffer.numberOfChannels * 2;
-            const arrayBuffer = new ArrayBuffer(44 + length);
-            const view = new DataView(arrayBuffer);
-            const channels = [];
-            let offset = 0;
-            let pos = 0;
-
-            // 写入WAV文件头
-            setUint32(0x46464952); // "RIFF"
-            setUint32(36 + length); // 文件长度
-            setUint32(0x45564157); // "WAVE"
-
-            // fmt子块
-            setUint32(0x20746d66); // "fmt "
-            setUint32(16); // 子块大小
-            setUint16(1); // 音频格式 (PCM)
-            setUint16(buffer.numberOfChannels); // 声道数
-            setUint32(buffer.sampleRate); // 采样率
-            setUint32(buffer.sampleRate * buffer.numberOfChannels * 2); // 字节率
-            setUint16(buffer.numberOfChannels * 2); // 块对齐
-            setUint16(16); // 位深度
-
-            // data子块
-            setUint32(0x61746164); // "data"
-            setUint32(length); // 数据长度
-
-            // 写入音频数据
-            for (let i = 0; i < buffer.numberOfChannels; i++) {
-                channels.push(buffer.getChannelData(i));
-            }
-
-            while (pos < buffer.length) {
-                for (let i = 0; i < buffer.numberOfChannels; i++) {
-                    let sample = Math.max(-1, Math.min(1, channels[i][pos]));
-                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                    view.setInt16(offset, sample, true);
-                    offset += 2;
-                }
-                pos++;
-            }
-
-            return new Blob([arrayBuffer], { type: 'audio/wav' });
-
-            function setUint16(data) {
-                view.setUint16(pos, data, true);
-                pos += 2;
-            }
-
-            function setUint32(data) {
-                view.setUint32(pos, data, true);
-                pos += 4;
-            }
-        }
     </script>
 </body>
 </html>
